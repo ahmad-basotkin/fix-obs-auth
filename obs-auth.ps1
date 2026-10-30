@@ -16,11 +16,24 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $Script:Host0 = 'auth.obsproject.com'
-$Script:TmpDir = Join-Path $env:TEMP 'obs-auth-proxy'
+$Script:TmpBase = $env:LOCALAPPDATA
+
+if ([string]::IsNullOrWhiteSpace($Script:TmpBase) -or
+    -not (Test-Path -LiteralPath $Script:TmpBase -PathType Container)) {
+    $Script:TmpBase = [Environment]::GetFolderPath('LocalApplicationData')
+}
+
+if ([string]::IsNullOrWhiteSpace($Script:TmpBase) -or
+    -not (Test-Path -LiteralPath $Script:TmpBase -PathType Container)) {
+    $Script:TmpBase = [IO.Path]::GetTempPath()
+}
+
+$Script:TmpDir = Join-Path $Script:TmpBase 'obs-auth-proxy'
 $Script:StateFile = Join-Path $Script:TmpDir 'state.json'
 $Script:RelayLog = Join-Path $Script:TmpDir 'relay.log'
 $Script:RelayPidFile = Join-Path $Script:TmpDir 'relay.pid'
-New-Item -ItemType Directory -Force -Path $Script:TmpDir | Out-Null
+
+New-Item -ItemType Directory -Force -Path $Script:TmpDir -ErrorAction Stop | Out-Null
 
 $Script:PublicLimit   = 30
 $Script:PublicTimeout = 5000
